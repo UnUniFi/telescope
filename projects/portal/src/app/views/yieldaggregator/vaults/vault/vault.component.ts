@@ -7,6 +7,7 @@ import {
   WithdrawFromVaultRequest,
   WithdrawFromVaultWithUnbondingRequest,
 } from 'projects/portal/src/app/models/yield-aggregators/yield-aggregator.model';
+import { DenomOnChain } from 'projects/portal/src/app/pages/yieldaggregator/vaults/vault/vault.component';
 import { CoinAmountPipe } from 'projects/portal/src/app/pipes/coin-amount.pipe';
 import {
   DenomInfos200ResponseInfoInner,
@@ -43,7 +44,7 @@ export class VaultComponent implements OnInit, OnChanges {
   @Input()
   denom?: string | null;
   @Input()
-  availableDenoms?: DenomInfos200ResponseInfoInner[] | null;
+  availableDenoms?: DenomOnChain[] | null;
   @Input()
   symbolImage?: string | null;
   @Input()
@@ -89,13 +90,6 @@ export class VaultComponent implements OnInit, OnChanges {
   mintAmount?: number;
   burnAmount?: number;
   tab: 'mint' | 'burn' = 'mint';
-  selectedChain: ExternalChain = {
-    id: 'ununifi',
-    display: 'UnUniFi',
-    disabled: false,
-    external: false,
-    cosmos: true,
-  };
   withdrawOptions: WithdrawOption[] = [
     {
       id: 0,
@@ -113,71 +107,7 @@ export class VaultComponent implements OnInit, OnChanges {
     },
   ];
   selectedWithdrawOption?: WithdrawOption;
-  chains: ExternalChain[] = [
-    {
-      id: 'ununifi',
-      display: 'UnUniFi',
-      disabled: false,
-      external: false,
-      cosmos: true,
-    },
-    {
-      id: 'ethereum',
-      display: 'Ethereum',
-      disabled: true,
-      external: true,
-      cosmos: false,
-    },
-    {
-      id: 'avalanche',
-      display: 'Avalanche',
-      disabled: true,
-      external: true,
-      cosmos: false,
-    },
-    {
-      id: 'polygon',
-      display: 'Polygon',
-      disabled: true,
-      external: true,
-      cosmos: false,
-    },
-    {
-      id: 'arbitrum',
-      display: 'Arbitrum',
-      disabled: true,
-      external: true,
-      cosmos: false,
-    },
-    {
-      id: 'cosmoshub',
-      display: 'Cosmos Hub',
-      disabled: true,
-      external: true,
-      cosmos: true,
-    },
-    {
-      id: 'neutron',
-      display: 'Neutron',
-      disabled: true,
-      external: true,
-      cosmos: true,
-    },
-    {
-      id: 'osmosis',
-      display: 'Osmosis',
-      disabled: true,
-      external: true,
-      cosmos: true,
-    },
-    {
-      id: 'sei',
-      display: 'Sei',
-      disabled: true,
-      external: true,
-      cosmos: true,
-    },
-  ];
+  selectedDenom?: DenomOnChain;
 
   constructor(private coinAmountPipe: CoinAmountPipe) {
     this.changeDeposit = new EventEmitter();
@@ -191,12 +121,18 @@ export class VaultComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {}
 
-  ngOnChanges(): void {}
+  ngOnChanges(): void {
+    if (!this.selectedDenom && this.availableDenoms) {
+      this.selectedDenom = this.availableDenoms[0];
+    }
+  }
 
-  onClickChain(id: string) {
-    this.selectedChain = this.chains.find((chain) => chain.id === id)!;
-    this.appClickChain.emit(this.selectedChain);
-    (global as any).chain_select_modal.close();
+  onClickChain(denom: DenomOnChain) {
+    this.selectedDenom = denom;
+    if (denom.chain === 'ethereum') {
+      this.appClickChain.emit();
+    }
+    (global as any).token_select_modal.close();
   }
 
   onClickWithdrawOption(option: WithdrawOption) {
@@ -285,5 +221,12 @@ export class VaultComponent implements OnInit, OnChanges {
       Number(vault.total_unbonding_amount) +
       Number(vault.withdraw_reserve)
     ).toString();
+  }
+
+  detectIBCDenom(denom?: string): boolean {
+    if (!denom) {
+      return false;
+    }
+    return denom.startsWith('ibc/');
   }
 }

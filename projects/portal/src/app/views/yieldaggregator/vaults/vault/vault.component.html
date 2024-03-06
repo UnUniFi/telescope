@@ -222,38 +222,7 @@
       </div>
       <div class="card-body" *ngIf="tab === 'mint'">
         <form #depositFormRef="ngForm" (submit)="onSubmitDeposit()">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Chain that you deposit from</span>
-              <span class="label-text-alt"></span>
-            </label>
-            <button type="button" class="btn btn-block" onclick="chain_select_modal.showModal()">
-              {{ selectedChain.display }}
-            </button>
-
-            <dialog id="chain_select_modal" class="modal">
-              <form method="dialog" class="modal-box">
-                <h3 class="font-bold text-lg">Chain that you deposit from</h3>
-
-                <div class="flex flex-row flex-wrap gap-2 mt-2">
-                  <ng-container *ngFor="let chain of chains">
-                    <button
-                      type="button"
-                      class="btn btn-outline"
-                      [disabled]="chain.disabled"
-                      (click)="onClickChain(chain.id)"
-                    >
-                      {{ chain.display }}
-                    </button>
-                  </ng-container>
-                </div>
-              </form>
-              <form method="dialog" class="modal-backdrop">
-                <button type="button" onclick="chain_select_modal.close()">close</button>
-              </form>
-            </dialog>
-          </div>
-          <div class="form-control" *ngIf="selectedChain.external">
+          <!-- <div class="form-control" *ngIf="selectedChain.external">
             <label class="label">
               <span class="label-text">{{ selectedChain.display }} Address</span>
             </label>
@@ -266,7 +235,7 @@
                 value="{{ externalWalletAddress }}"
               />
             </label>
-          </div>
+          </div> -->
           <div class="form-control">
             <label class="label">
               <span class="label-text">Enter amount</span>
@@ -294,7 +263,69 @@
                 name="mintAmount"
                 (input)="onDepositAmountChange()"
               />
-              <select
+
+              <button type="button" class="btn w-1/4" onclick="token_select_modal.showModal()">
+                <div *ngIf="selectedDenom" class="grid grid-flow-col items-center gap-2 text-lg">
+                  <div class="avatar">
+                    <div class="w-8 rounded-full">
+                      <img src="{{ symbolImage }}" />
+                    </div>
+                    <div class="avatar -ml-2 mt-4" *ngIf="symbolImage !== selectedDenom.chainImg">
+                      <div class="w-4 rounded-full">
+                        <img src="{{ selectedDenom.chainImg }}" />
+                      </div>
+                    </div>
+                  </div>
+                  {{ selectedDenom.symbol }}
+                  <span
+                    class="badge badge-sm badge-primary"
+                    *ngIf="detectIBCDenom(selectedDenom.denom)"
+                  >
+                    IBC
+                  </span>
+                </div>
+                <div *ngIf="!selectedDenom">Select a token</div>
+                <div class="material-symbols-outlined">keyboard_arrow_down</div>
+              </button>
+
+              <dialog id="token_select_modal" class="modal">
+                <form method="dialog" class="modal-box">
+                  <h3 class="font-bold text-lg mb-4">Please select a token</h3>
+                  <ul class="menu menu-lg bg-base-200 w-full rounded-box">
+                    <ng-container *ngFor="let availableDenom of availableDenoms">
+                      <li>
+                        <a (click)="onClickChain(availableDenom)">
+                          <div class="avatar">
+                            <div class="w-8 rounded-full">
+                              <img src="{{ symbolImage }}" />
+                            </div>
+                            <div
+                              class="avatar -ml-2 mt-4"
+                              *ngIf="symbolImage !== availableDenom.chainImg"
+                            >
+                              <div class="w-4 rounded-full">
+                                <img src="{{ availableDenom.chainImg }}" />
+                              </div>
+                            </div>
+                          </div>
+                          {{ availableDenom.symbol }}
+                          <span class="badge badge-sm">{{ availableDenom.chain }}</span>
+                          <span
+                            class="badge badge-sm badge-primary"
+                            *ngIf="detectIBCDenom(availableDenom.denom)"
+                          >
+                            IBC
+                          </span>
+                        </a>
+                      </li>
+                    </ng-container>
+                  </ul>
+                </form>
+                <form method="dialog" class="modal-backdrop">
+                  <button type="button" onclick="token_select_modal.close()">close</button>
+                </form>
+              </dialog>
+              <!-- <select
                 class="select select-bordered text-center w-auto sm:w-64"
                 [class]="{
                   'select-error': !denom
@@ -310,9 +341,9 @@
                     {{ denomInfo.denom | coinDenom | async }}
                   </option>
                 </ng-container>
-              </select>
+              </select> -->
             </label>
-            <span class="label" *ngIf="selectedChain.id === 'ununifi'">
+            <span class="label">
               <span class="label-text-alt">Available balance:</span>
               <label class="label-text-alt">
                 {{ denomBalancesMap?.[denom || '']?.amount | coinAmount: denom }}
@@ -321,7 +352,7 @@
             </span>
           </div>
 
-          <div class="form-control" *ngIf="!selectedChain.cosmos">
+          <div class="form-control" *ngIf="selectedDenom?.chain !== 'UnUniFi'">
             <label class="label">
               <span class="label-text">Converted to</span>
             </label>

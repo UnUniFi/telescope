@@ -1,3 +1,4 @@
+import { DenomOnChain } from '../../pages/yieldaggregator/vaults/vault/vault.component';
 import { Config, StrategyInfo } from '../config.service';
 import { getDenomExponent } from '../cosmos/bank.model';
 import { BankQueryService } from '../cosmos/bank.query.service';
@@ -258,5 +259,28 @@ export class YieldAggregatorService {
       certainty: vaultAPYCertainty,
       poolInfos,
     };
+  }
+
+  addOtherChainsTokens(denoms: DenomOnChain[], symbol: string): DenomOnChain[] {
+    if (symbol === 'ATOM') {
+      denoms.push({
+        denom: 'uatom',
+        symbol: 'ATOM',
+        chain: 'Cosmos',
+        chainImg:
+          'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@1a63530be6e374711a8554f31b17e4cb92c25fa5/svg/color/atom.svg',
+        ibc: true,
+      });
+    }
+    if (symbol === 'OSMO') {
+      denoms.push({
+        denom: 'uosmo',
+        symbol: 'OSMO',
+        chain: 'Osmosis',
+        chainImg: 'assets/osmosis-logo.svg',
+        ibc: true,
+      });
+    }
+    return denoms;
   }
 }

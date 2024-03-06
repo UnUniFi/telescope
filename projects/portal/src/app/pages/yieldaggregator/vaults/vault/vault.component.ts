@@ -27,6 +27,12 @@ import {
   Vault200Response,
 } from 'ununifi-client/esm/openapi';
 
+export type DenomOnChain = DenomInfos200ResponseInfoInner & {
+  chain: string;
+  chainImg: string;
+  ibc: boolean;
+};
+
 @Component({
   selector: 'app-vault',
   templateUrl: './vault.component.html',
@@ -36,7 +42,7 @@ export class VaultComponent implements OnInit {
   address$: Observable<string>;
   vault$: Observable<Vault200Response>;
   denom$: Observable<string | null | undefined>;
-  availableDenoms$: Observable<DenomInfos200ResponseInfoInner[]>;
+  availableDenoms$: Observable<DenomOnChain[]>;
   symbol$: Observable<string | undefined>;
   denomBalancesMap$: Observable<{ [symbol: string]: cosmosclient.proto.cosmos.base.v1beta1.ICoin }>;
   denomMetadataMap$: Observable<{
@@ -85,7 +91,17 @@ export class VaultComponent implements OnInit {
     );
     const denomInfos$ = this.iyaQuery.listDenomInfos$();
     this.availableDenoms$ = combineLatest([this.symbol$, denomInfos$]).pipe(
-      map(([symbol, infos]) => infos.filter((info) => info.symbol === symbol)),
+      map(([symbol, infos]) => {
+        const denoms = infos
+          .filter((info) => info.symbol === symbol)
+          .map((info) => ({
+            ...info,
+            chain: 'UnUniFi',
+            chainImg: 'assets/UnUniFi-logo.png',
+            ibc: false,
+          }));
+        return symbol ? this.iyaService.addOtherChainsTokens(denoms, symbol) : denoms;
+      }),
     );
 
     const timer$ = timer(0, 1000 * 60);
